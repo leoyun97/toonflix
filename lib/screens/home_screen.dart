@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:toonflix/services/api_service.dart';
 import 'package:toonflix/models/webtoon_model.dart';
+import 'package:toonflix/widgets/webtoon_widget.dart';
 
 class HomeScreen extends StatelessWidget {
   HomeScreen({super.key});
 
-  Future<List<WebtoonModel>> webtoons = ApiService.getTodaysToons();
+  final Future<List<WebtoonModel>> webToons = ApiService.getTodaysToons();
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +22,37 @@ class HomeScreen extends StatelessWidget {
         elevation: 5,
       ),
       body: FutureBuilder(
-        future: webtoons,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return const Text("There is data!");
+        future: webToons,
+        builder: (context, futureResults) {
+          if (futureResults.hasData) {
+            return Column(
+              children: [
+                const SizedBox(
+                  height: 50,
+                ),
+                Expanded(child: makeList(futureResults)),
+              ],
+            );
           }
-          return const Text('Loading...');
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         },
+      ),
+    );
+  }
+
+  ListView makeList(AsyncSnapshot<List<WebtoonModel>> futureResults) {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: futureResults.data!.length,
+      padding: const EdgeInsets.symmetric(vertical: 10,horizontal: 20),
+      itemBuilder: (context, index) {
+        var webToon = futureResults.data![index];
+        return Webtoon(title: webToon.title, thumb: webToon.thumb, id: webToon.id);
+      },
+      separatorBuilder: (context, index) => const SizedBox(
+        width: 40,
       ),
     );
   }
